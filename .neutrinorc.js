@@ -129,7 +129,7 @@ module.exports = {
       },
     }),
     require('@neutrinojs/copy')({
-      patterns: ['ui/contribute.json', 'ui/revision.txt', 'ui/robots.txt'],
+      patterns: ['ui/contribute.json', 'ui/revision.txt', 'ui/robots.txt', 'config.toml'],
     }),
     process.env.NODE_ENV === 'test' &&
       require('@neutrinojs/jest')({

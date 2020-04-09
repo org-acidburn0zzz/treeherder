@@ -23,6 +23,7 @@ class PushHealthSummary extends PureComponent {
     return (
       <div>
         <span className="d-flex">
+          {!healthStatus && <Spinner />}
           <a
             href={getPushHealthUrl({ revision, repo: repoName })}
             title="View Push Health details for this push"
@@ -54,30 +55,26 @@ class PushHealthSummary extends PureComponent {
             </div>
           </a>
         </span>
-        {healthStatus ? (
-          <Table className="ml-3 w-100 small-text row-height-tight">
-            <tbody>
-              <tr className={`${buildFailureCount ? 'font-weight-bold' : ''}`}>
-                <td className="py-1">Build Failures</td>
-                <td className="py-1">{buildFailureCount}</td>
-              </tr>
-              <tr
-                className={`${testFailureCount ? 'font-weight-bold' : ''} py-1`}
-              >
-                <td className="py-1">Test Failures</td>
-                <td className="py-1">{testFailureCount}</td>
-              </tr>
-              <tr
-                className={`${lintFailureCount ? 'font-weight-bold' : ''} py-1`}
-              >
-                <td className="py-1">Linting Failures</td>
-                <td className="py-1">{lintFailureCount}</td>
-              </tr>
-            </tbody>
-          </Table>
-        ) : (
-          <Spinner />
-        )}
+        <Table className="ml-3 w-100 small-text row-height-tight">
+          <tbody>
+            <tr className={`${buildFailureCount ? 'font-weight-bold' : ''}`}>
+              <td className="py-1">Build Failures</td>
+              <td className="py-1">{buildFailureCount}</td>
+            </tr>
+            <tr
+              className={`${testFailureCount ? 'font-weight-bold' : ''} py-1`}
+            >
+              <td className="py-1">Test Failures</td>
+              <td className="py-1">{testFailureCount}</td>
+            </tr>
+            <tr
+              className={`${lintFailureCount ? 'font-weight-bold' : ''} py-1`}
+            >
+              <td className="py-1">Linting Failures</td>
+              <td className="py-1">{lintFailureCount}</td>
+            </tr>
+          </tbody>
+        </Table>
       </div>
     );
   }

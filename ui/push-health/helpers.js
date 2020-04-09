@@ -14,7 +14,8 @@ export const taskResultColorMap = {
   unknown: 'darker-secondary',
 };
 
-export const filterTests = (tests, searchStr, showParentMatches) => {
+export const filterTests = (tests, searchStr) => {
+  const showParentMatches = true;
   const filters = searchStr.split(' ').map((filter) => new RegExp(filter, 'i'));
   const testsFilteredForParentMatches = tests.filter(
     (test) =>
@@ -26,8 +27,4 @@ export const filterTests = (tests, searchStr, showParentMatches) => {
       f.test(`${test.testName} ${test.platform} ${test.config}`),
     ),
   );
-};
-
-export const filterJobs = (jobs, showParentMatches) => {
-  return jobs.filter((job) => job.failedInParent === showParentMatches);
 };

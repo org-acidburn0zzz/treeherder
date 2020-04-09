@@ -7,8 +7,6 @@ from os.path import abspath, dirname, join
 import environ
 from furl import furl
 from kombu import Exchange, Queue
-from adr import config
-from urllib.parse import urlparse
 
 from treeherder.config.utils import connection_should_use_tls, get_tls_redis_url
 
@@ -194,16 +192,16 @@ CACHES = {
 }
 
 # Setup adr to use our Redis cache
-redis = urlparse(REDIS_URL)
-adr_config = {
-    "cache": {
-        "retention": 10080,
-        'stores': {
-            'redis': {'driver': 'redis', 'host': redis.hostname, 'port': redis.port, 'db': 0}
-        },
-    },
-}
-config.update(adr_config)
+# redis = urlparse(REDIS_URL)
+# adr_config = {
+#     "cache": {
+#         "retention": 10080,
+#         'stores': {
+#             'redis': {'driver': 'redis', 'host': redis.hostname, 'port': redis.port, 'db': 0}
+#         },
+#     },
+# }
+# config.update(adr_config)
 
 # Internationalization
 TIME_ZONE = "UTC"
@@ -275,6 +273,10 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'WARNING',
         },
+        # 'django.db.backends': {
+        #     'level': 'DEBUG',
+        #     'handlers': ['console', ],
+        # },
     },
 }
 
@@ -480,3 +482,6 @@ PERF_SHERIFF_BOT_ACCESS_TOKEN = env('PERF_SHERIFF_BOT_ACCESS_TOKEN', default=Non
 # This is only used for removing the rate limiting. You can create your own here:
 # https://github.com/settings/tokens
 GITHUB_TOKEN = env("GITHUB_TOKEN", default=None)
+
+MOZCI_CONFIG_PATH = env("MOZCI_CONFIG_PATH", default="config.toml")
+ADR_CONFIG_PATH = env("ADR_CONFIG_PATH", default="config.toml")

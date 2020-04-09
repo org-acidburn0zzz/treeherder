@@ -3,13 +3,12 @@ import PropTypes from 'prop-types';
 import { Row } from 'reactstrap';
 
 import Job from './Job';
-import { filterJobs } from './helpers';
 
 export default class JobListMetric extends React.PureComponent {
   render() {
-    const { data, repo, revision, showParentMatches } = this.props;
+    const { data, repo, revision } = this.props;
     const { name, details } = data;
-    const jobs = filterJobs(details, showParentMatches);
+    const jobs = details;
     const msgForZeroJobs =
       details.length && !jobs.length
         ? `All failed ${name} also failed in Parent Push`
@@ -39,5 +38,4 @@ JobListMetric.propTypes = {
   }).isRequired,
   repo: PropTypes.string.isRequired,
   revision: PropTypes.string.isRequired,
-  showParentMatches: PropTypes.bool.isRequired,
 };

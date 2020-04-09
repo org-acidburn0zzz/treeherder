@@ -8,12 +8,14 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
+from mozci.push import Push as MozciPush
+
 from treeherder.log_parser.failureline import get_group_results
 from treeherder.model.models import Job, JobType, Push, Repository
 from treeherder.push_health.builds import get_build_failures
 from treeherder.push_health.compare import get_commit_history
 from treeherder.push_health.linting import get_lint_failures
-from treeherder.push_health.tests import get_test_failures, get_test_failure_jobs
+from treeherder.push_health.tests import get_test_failure_jobs, get_test_failures
 from treeherder.push_health.usage import get_usage
 from treeherder.webapp.api.serializers import PushSerializer
 from treeherder.webapp.api.utils import to_datetime, to_timestamp
@@ -212,21 +214,29 @@ class PushViewSet(viewsets.ViewSet):
                 "No push with revision: {0}".format(revision), status=HTTP_404_NOT_FOUND
             )
 
+        mozciPush = MozciPush([revision], project)
+        likely_regression_labels = list(mozciPush.get_likely_regressions('label'))
+
         jobs = get_test_failure_jobs(push)
 
-        push_health_test_failures = get_test_failures(push, jobs)
+        push_health_test_failures = get_test_failures(push, jobs, likely_regression_labels)
+        need_investigation = push_health_test_failures['needInvestigation']
         push_health_lint_failures = get_lint_failures(push)
         push_health_build_failures = get_build_failures(push)
-        test_failure_count = len(push_health_test_failures['needInvestigation'])
+        test_likely_regression_count = len(need_investigation['tests']) + len(
+            need_investigation['unstructuredFailures']
+        )
         build_failure_count = len(push_health_build_failures)
         lint_failure_count = len(push_health_lint_failures)
 
         return Response(
             {
-                'testFailureCount': test_failure_count,
+                'testFailureCount': test_likely_regression_count,
                 'buildFailureCount': build_failure_count,
                 'lintFailureCount': lint_failure_count,
-                'needInvestigation': test_failure_count + build_failure_count + lint_failure_count,
+                'needInvestigation': test_likely_regression_count
+                + build_failure_count
+                + lint_failure_count,
             }
         )
 
@@ -246,33 +256,44 @@ class PushViewSet(viewsets.ViewSet):
             repository = Repository.objects.get(name=project)
             push = Push.objects.get(revision=revision, repository=repository)
         except Push.DoesNotExist:
-            return Response(
-                "No push with revision: {0}".format(revision), status=HTTP_404_NOT_FOUND
-            )
+            return Response(f"No push with revision: {revision}", status=HTTP_404_NOT_FOUND)
+
+        # task_ids = Job.objects.filter(
+        #     push__revision=revision, repository__name=project
+        # ).select_related(
+        #     'taskcluster_metadata'
+        # ).values_list(
+        #     'taskcluster_metadata__task_id', flat=True
+        # )
+        # print(task_ids)
+        #
+        # return {id: {} for id in list(task_ids)}
+        # return Response(list(task_ids))
+
+        mozciPush = MozciPush([revision], repository.name)
+        likely_regression_labels = list(mozciPush.get_likely_regressions('label'))
+        jobs = get_test_failure_jobs(push)
+
+        test_failures = get_test_failures(push, jobs, likely_regression_labels)
+        test_result = 'pass'
+        if len(likely_regression_labels):
+            test_result = 'fail'
 
         commit_history_details = None
         parent_push = None
-        jobs = get_test_failure_jobs(push)
+
         # Parent compare only supported for Hg at this time.
         # Bug https://bugzilla.mozilla.org/show_bug.cgi?id=1612645
         if repository.dvcs_type == 'hg':
-            commit_history_details = get_commit_history(repository, revision, push)
+            # TODO: Need to use the MozciPush we already have for this.
+            commit_history_details = get_commit_history(mozciPush, push)
             if commit_history_details['exactMatch']:
                 parent_push = commit_history_details.pop('parentPush')
-
-        push_health_test_failures = get_test_failures(
-            push,
-            jobs,
-            parent_push,
-        )
-        test_result = 'pass'
-        if len(push_health_test_failures['needInvestigation']):
-            test_result = 'fail'
 
         build_failures = get_build_failures(push, parent_push)
         build_result = 'fail' if len(build_failures) else 'pass'
 
-        lint_failures = get_lint_failures(push)
+        lint_failures = get_lint_failures(push, parent_push)
         lint_result = 'fail' if len(lint_failures) else 'pass'
 
         push_result = 'pass'
@@ -287,7 +308,7 @@ class PushViewSet(viewsets.ViewSet):
             {
                 'revision': revision,
                 'repo': repository.name,
-                'needInvestigation': len(push_health_test_failures['needInvestigation']),
+                'needInvestigation': len(likely_regression_labels),
                 'author': push.author,
             },
         )
@@ -298,6 +319,7 @@ class PushViewSet(viewsets.ViewSet):
                 'id': push.id,
                 'result': push_result,
                 'jobs': jobs,
+                'labels': likely_regression_labels,
                 'metrics': {
                     'commitHistory': {
                         'name': 'Commit History',
@@ -312,7 +334,7 @@ class PushViewSet(viewsets.ViewSet):
                     'tests': {
                         'name': 'Tests',
                         'result': test_result,
-                        'details': push_health_test_failures,
+                        'details': test_failures,
                     },
                     'builds': {
                         'name': 'Builds',

@@ -60,10 +60,17 @@ class PushHealthStatus extends Component {
       jobCounts: { pending, running, completed },
     } = this.props;
     const { needInvestigation } = this.state;
-    let healthStatus = 'In progress';
-    let badgeColor = 'darker-secondary';
+    let healthStatus = 'Push Health';
+    let badgeColor = 'light';
     let extraTitle = 'No errors so far';
-    let icon = faClock;
+    let icon = null;
+
+    if (needInvestigation === 0) {
+      healthStatus = 'In Progress';
+      badgeColor = 'darker-secondary';
+      extraTitle = 'No regressions so far';
+      icon = faClock;
+    }
 
     if (completed) {
       if (needInvestigation) {
@@ -85,23 +92,23 @@ class PushHealthStatus extends Component {
 
     return (
       <span data-testid={`health-status-${revision}`}>
-        {needInvestigation !== null ? (
-          <a
-            href={getPushHealthUrl({ repo: repoName, revision })}
-            target="_blank"
-            rel="noopener noreferrer"
+        <a
+          href={getPushHealthUrl({ repo: repoName, revision })}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Badge
+            color={badgeColor}
+            title={`Push Health status - click for details: ${extraTitle}`}
           >
-            <Badge
-              color={badgeColor}
-              title={`Push Health status - click for details: ${extraTitle}`}
-            >
+            {icon === null ? (
+              <Spinner size="sm" className="mr-1" />
+            ) : (
               <FontAwesomeIcon className="mr-1" icon={icon} />
-              {healthStatus}
-            </Badge>
-          </a>
-        ) : (
-          <Spinner size="sm" />
-        )}
+            )}
+            {healthStatus}
+          </Badge>
+        </a>
       </span>
     );
   }
