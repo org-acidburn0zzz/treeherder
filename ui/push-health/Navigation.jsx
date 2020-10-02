@@ -10,37 +10,13 @@ import { resultColorMap } from './helpers';
 
 export default class Navigation extends React.PureComponent {
   render() {
-    const {
-      user,
-      setUser,
-      result,
-      notify,
-      repo,
-      revision,
-      children,
-    } = this.props;
-    const overallResult = result ? resultColorMap[result] : 'none';
+    const { user, setUser, notify, children } = this.props;
 
     return (
       <React.Fragment>
         <Navbar dark color="dark" sticky="top" className="flex-column">
           <Nav className="w-100 justify-content-between">
             <LogoMenu menuText="Push Health" />
-            <h4>
-              <Badge color={overallResult}>
-                <a
-                  href={getJobsUrl({ repo, revision })}
-                  className="text-white"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <span title="repository">{repo}</span> -
-                  <span title="revision" className="ml-1">
-                    {revision}
-                  </span>
-                </a>
-              </Badge>
-            </h4>
             <Login user={user} setUser={setUser} notify={notify} />
           </Nav>
           {children}

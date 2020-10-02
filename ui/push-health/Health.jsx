@@ -95,10 +95,6 @@ export default class Health extends React.PureComponent {
     clearInterval(this.testTimerId);
   }
 
-  setUser = (user) => {
-    this.setState({ user });
-  };
-
   updateParamsAndState = (stateObj) => {
     const { location, history } = this.props;
     const newParams = {
@@ -118,21 +114,6 @@ export default class Health extends React.PureComponent {
 
     this.setState(newState);
     return newState;
-  };
-
-  notify = (message, severity, options = {}) => {
-    const { notifications } = this.state;
-    const notification = {
-      ...options,
-      message,
-      severity: severity || 'darker-info',
-      created: Date.now(),
-    };
-    const newNotifications = [notification, ...notifications];
-
-    this.setState({
-      notifications: newNotifications,
-    });
   };
 
   clearNotification = (index) => {
@@ -221,15 +202,7 @@ export default class Health extends React.PureComponent {
           />
           <title>{`[${needInvestigationCount}] Push Health`}</title>
         </Helmet>
-        <Navigation
-          user={user}
-          setUser={this.setUser}
-          notify={this.notify}
-          result={result}
-          repo={repo}
-          revision={revision}
-        >
-          <Navbar color="light" light expand="sm" className="w-100">
+        {/* <Navbar color="light" light expand="sm" className="w-100">
             {!!tests && (
               <Nav className="mb-2 pt-2 pl-3 justify-content-between w-100">
                 <span />
@@ -251,8 +224,7 @@ export default class Health extends React.PureComponent {
                 </span>
               </Nav>
             )}
-          </Navbar>
-        </Navigation>
+          </Navbar> */}
         <Container fluid className="mt-2 mb-5 max-width-default">
           <NotificationList
             notifications={notifications}
