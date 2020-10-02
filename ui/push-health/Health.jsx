@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Button, Navbar, Nav, Container, Spinner } from 'reactstrap';
+import { Container, Spinner } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faClock,
@@ -14,11 +14,6 @@ import { Tab, TabList, TabPanel, Tabs } from 'react-tabs';
 import faviconBroken from '../img/push-health-broken.png';
 import faviconOk from '../img/push-health-ok.png';
 import ErrorMessages from '../shared/ErrorMessages';
-import NotificationList from '../shared/NotificationList';
-import {
-  clearNotificationAtIndex,
-  clearExpiredTransientNotifications,
-} from '../helpers/notifications';
 import PushModel from '../models/push';
 import RepositoryModel from '../models/repository';
 import StatusProgress from '../shared/StatusProgress';
@@ -28,10 +23,8 @@ import {
   parseQueryParams,
   updateQueryParams,
 } from '../helpers/url';
-import InputFilter from '../shared/InputFilter';
 
 import { resultColorMap } from './helpers';
-import Navigation from './Navigation';
 import TestMetric from './TestMetric';
 import JobListMetric from './JobListMetric';
 import CommitHistory from './CommitHistory';
@@ -43,7 +36,6 @@ export default class Health extends React.PureComponent {
     const params = new URLSearchParams(props.location.search);
 
     this.state = {
-      user: { isLoggedIn: false },
       revision: params.get('revision'),
       repo: params.get('repo'),
       currentRepo: null,
@@ -51,7 +43,6 @@ export default class Health extends React.PureComponent {
       jobs: null,
       result: null,
       failureMessage: null,
-      notifications: [],
       defaultTabIndex: 0,
       showParentMatches: false,
       testGroup: params.get('testGroup') || '',
@@ -85,9 +76,7 @@ export default class Health extends React.PureComponent {
     // Update the tests every two minutes.
     this.testTimerId = setInterval(() => this.updatePushHealth(), 120000);
     this.notificationsId = setInterval(() => {
-      const { notifications } = this.state;
-
-      this.setState(clearExpiredTransientNotifications(notifications));
+      this.props.clearNotification();
     }, 4000);
   }
 
@@ -114,12 +103,6 @@ export default class Health extends React.PureComponent {
 
     this.setState(newState);
     return newState;
-  };
-
-  clearNotification = (index) => {
-    const { notifications } = this.state;
-
-    this.setState(clearNotificationAtIndex(notifications, index));
   };
 
   setExpanded = (metricName, expanded) => {
@@ -168,12 +151,10 @@ export default class Health extends React.PureComponent {
     const {
       metrics,
       result,
-      user,
       repo,
       revision,
       jobs,
       failureMessage,
-      notifications,
       status,
       searchStr,
       currentRepo,
@@ -193,6 +174,7 @@ export default class Health extends React.PureComponent {
       ? tests.details.needInvestigation.length
       : 0;
 
+    const { notify } = this.props;
     return (
       <React.Fragment>
         <Helmet>
@@ -202,34 +184,7 @@ export default class Health extends React.PureComponent {
           />
           <title>{`[${needInvestigationCount}] Push Health`}</title>
         </Helmet>
-        {/* <Navbar color="light" light expand="sm" className="w-100">
-            {!!tests && (
-              <Nav className="mb-2 pt-2 pl-3 justify-content-between w-100">
-                <span />
-                <span className="mr-2 d-flex">
-                  <Button
-                    size="sm"
-                    className="text-nowrap mr-1"
-                    title="Toggle failures that also failed in the parent"
-                    onClick={() =>
-                      this.setState({ showParentMatches: !showParentMatches })
-                    }
-                  >
-                    {showParentMatches ? 'Hide' : 'Show'} parent matches
-                  </Button>
-                  <InputFilter
-                    updateFilterText={this.filter}
-                    placeholder="filter path or platform"
-                  />
-                </span>
-              </Nav>
-            )}
-          </Navbar> */}
         <Container fluid className="mt-2 mb-5 max-width-default">
-          <NotificationList
-            notifications={notifications}
-            clearNotification={this.clearNotification}
-          />
           {!!tests && !!currentRepo && (
             <React.Fragment>
               <div className="d-flex mb-5">
@@ -305,7 +260,7 @@ export default class Health extends React.PureComponent {
                       repo={repo}
                       currentRepo={currentRepo}
                       revision={revision}
-                      notify={this.notify}
+                      notify={notify}
                       setExpanded={this.setExpanded}
                       searchStr={searchStr}
                       testGroup={testGroup}

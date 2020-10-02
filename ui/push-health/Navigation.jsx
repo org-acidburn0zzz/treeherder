@@ -1,12 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Badge, Navbar, Nav } from 'reactstrap';
+import { Navbar, Nav } from 'reactstrap';
 
 import LogoMenu from '../shared/LogoMenu';
-import { getJobsUrl } from '../helpers/url';
 import Login from '../shared/auth/Login';
-
-import { resultColorMap } from './helpers';
 
 export default class Navigation extends React.PureComponent {
   render() {
@@ -29,14 +26,9 @@ export default class Navigation extends React.PureComponent {
 Navigation.propTypes = {
   user: PropTypes.shape({}).isRequired,
   setUser: PropTypes.func.isRequired,
-  repo: PropTypes.string.isRequired,
-  revision: PropTypes.string.isRequired,
-  notify: PropTypes.func.isRequired,
-  result: PropTypes.string,
   children: PropTypes.element,
 };
 
 Navigation.defaultProps = {
-  result: '',
   children: null,
 };
