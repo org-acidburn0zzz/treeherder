@@ -1,7 +1,7 @@
 import React from 'react';
 import { hot } from 'react-hot-loader/root';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
-
+import MyPushes from './MyPushes';
 import NotFound from './NotFound';
 import Health from './Health';
 import Usage from './Usage';
@@ -18,9 +18,9 @@ const App = () => {
       <div>
         <div>
           <Switch>
-            <Route
-              exact
-              path="/pushhealth.html"
+            <Route path="/" render={(props) => <MyPushes {...props} />} />
+            {/* <Route
+              path="/push"
               render={(props) =>
                 hasProps(props.location.search) ? (
                   <Health {...props} />
@@ -28,8 +28,8 @@ const App = () => {
                   <Usage {...props} />
                 )
               }
-            />
-            <Route name="notfound" component={NotFound} />
+            /> */}
+            {/* <Route name="notfound" component={NotFound} /> */}
           </Switch>
         </div>
       </div>
