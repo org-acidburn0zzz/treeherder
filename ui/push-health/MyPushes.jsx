@@ -36,15 +36,51 @@ class MyPushes extends React.Component {
     // TODO notify with failure message
   }
 
+  // TODO
+  // Look into creating a new method on the PushViewSet to query by author return a group of metrics
+  // without the jobs so as to skip fetching the pushlist first. Will need to evaluate the query time since there is
+  // not an index on author field and will need it to be limited to top 5 most recent pushes (can introduce pagination later if needed).
+  // needed data structure:
+  //  [
+  //   {
+  //     'revision': revision,
+  //     'id': push.id, ???
+  //     'result': push_result, ???
+  //     'metrics': {
+  //         'commitHistory': {
+  //             'name': 'Commit History',
+  //             'result': 'none',
+  //             'details': commit_history_details,
+  //         },
+  //         'linting': {
+  //             'name': 'Linting',
+  //             'result': lint_result,
+  //             'details': lint_failures,
+  //             'count': count
+  //         },
+  //         'tests': {
+  //             'name': 'Tests',
+  //             'result': test_result,
+  //             'details': push_health_test_failures,
+  //             'count': count
+  //         },
+  //         'builds': {
+  //             'name': 'Builds',
+  //             'result': build_result,
+  //             'details': build_failures,
+  //             'count': count
+  //         },
+  //     },
+  //     'status': push.get_status(), ???
+  // }
+  // ]
+
   updateMetrics = async (revisions) => {
     const metricData = await Promise.all(
       revisions.map((revision) => PushModel.getHealth('try', revision)),
     );
     console.log(metricData);
   };
-  // TODO
-  // fetch pushes by author and per repo (start with try) - start with past 10 which is TH default
-  // Use same logic in Health component that's used for the tabs (failed or passed)
 
   render() {
     const { user } = this.props;
