@@ -210,7 +210,7 @@ class PushViewSet(viewsets.ViewSet):
 
         if revision:
             try:
-                pushes = Push.objects.get(revision=revision, repository__name=project)
+                pushes = Push.objects.filter(revision=revision, repository__name=project)
             except Push.DoesNotExist:
                 return Response(
                     "No push with revision: {0}".format(revision), status=HTTP_404_NOT_FOUND
@@ -218,19 +218,20 @@ class PushViewSet(viewsets.ViewSet):
         else:
             try:
                 pushes = Push.objects.filter(author=author, repository__name=project)[: int(count)]
-                repository = Repository.objects.get(name=project)
             except Push.DoesNotExist:
                 return Response(
                     "No pushes found for author: {0}".format(author), status=HTTP_404_NOT_FOUND
                 )
 
+        commit_history_details = None
         data = []
 
         for push in list(pushes):
             jobs = get_test_failure_jobs(push)
 
             if with_history:
-                commit_history_details = None
+                repository = Repository.objects.get(name=project)
+
                 # Parent compare only supported for Hg at this time.
                 # Bug https://bugzilla.mozilla.org/show_bug.cgi?id=1612645
                 if repository.dvcs_type == 'hg':
