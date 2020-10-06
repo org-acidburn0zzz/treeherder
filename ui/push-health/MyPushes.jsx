@@ -20,6 +20,7 @@ class MyPushes extends React.Component {
 
   componentDidMount() {
     // if (this.props.user.isLoggedIn) {
+    this.fetchRepo();
     this.fetchPushes();
     // }
   }
@@ -34,6 +35,7 @@ class MyPushes extends React.Component {
   async fetchRepo() {
     const repos = await RepositoryModel.getList();
     const currentRepo = repos.find((repoObj) => repoObj.name === defaultRepo);
+
     this.setState({ currentRepo });
   }
 
@@ -41,7 +43,7 @@ class MyPushes extends React.Component {
     // TODO change to author to this.props.user.email
     const options = {
       with_history: 'true',
-      author: 'rstewart@mozilla.com',
+      author: 'tziade@mozilla.com',
       count: 3,
     };
 
@@ -61,13 +63,14 @@ class MyPushes extends React.Component {
   render() {
     const { user } = this.props;
     const { pushMetrics, currentRepo } = this.state;
+    console.log(pushMetrics, currentRepo);
     return (
       <Container fluid className="mt-2 mb-5 max-width-default">
-        {!user.isLoggedIn && (
+        {/* {!user.isLoggedIn && (
           <h2 className="pt-5 text-center">
             Please log in to see your Try pushes
           </h2>
-        )}
+        )} */}
         {currentRepo &&
           pushMetrics.length > 0 &&
           pushMetrics.map((push) => (

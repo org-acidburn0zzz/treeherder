@@ -206,18 +206,23 @@ class PushViewSet(viewsets.ViewSet):
         with_history = request.query_params.get('with_history')
         author = request.query_params.get('author')
         count = request.query_params.get('count')
-        # need to set a repo param?
+        revisions = revision.split(',')
 
         if revision:
             try:
-                pushes = Push.objects.filter(revision=revision, repository__name=project)
+                pushes = Push.objects.filter(revision__in=revisions, repository__name=project)
             except Push.DoesNotExist:
                 return Response(
                     "No push with revision: {0}".format(revision), status=HTTP_404_NOT_FOUND
                 )
         else:
             try:
-                pushes = Push.objects.filter(author=author, repository__name=project)[: int(count)]
+                pushes = (
+                    Push.objects.filter(author=author, repository__name=project)
+                    .select_related('repository')
+                    .prefetch_related('commits')
+                    .order_by('-time')[: int(count)]
+                )
             except Push.DoesNotExist:
                 return Response(
                     "No pushes found for author: {0}".format(author), status=HTTP_404_NOT_FOUND
