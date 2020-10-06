@@ -1,5 +1,8 @@
 import React from 'react';
 import { Container } from 'reactstrap';
+import { getData } from '../helpers/http';
+import { getProjectUrl, getUrlParam } from '../helpers/location';
+import { createQueryParams, pushEndpoint } from '../helpers/url';
 
 import PushModel from '../models/push';
 
@@ -7,7 +10,7 @@ class MyPushes extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {};
+    this.state = { data: [] };
   }
 
   componentDidMount() {
@@ -24,14 +27,21 @@ class MyPushes extends React.Component {
 
   async fetchPushes() {
     // TODO change to author to this.props.user.email
-    const options = { repo: 'try', author: 'rmaries@mozilla.com', count: 3 };
-    const { data, failureStatus } = await PushModel.getList(options);
+    const options = {
+      with_history: 'true',
+      author: 'rstewart@mozilla.com',
+      count: 3,
+    };
 
-    if (!failureStatus && data.results.length) {
-      const revisions = data.results.map((push) => push.revision);
-      const {
-        metrics: { linting, builds, tests },
-      } = await this.updateMetrics(revisions);
+    const { data, failureStatus } = await getData(
+      getProjectUrl(
+        `${pushEndpoint}health_summary/${createQueryParams(options)}`,
+        'try',
+      ),
+    );
+
+    if (!failureStatus && data.length) {
+      this.setState({ data });
     }
     // TODO notify with failure message
   }
