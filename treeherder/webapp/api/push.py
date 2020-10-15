@@ -206,11 +206,12 @@ class PushViewSet(viewsets.ViewSet):
         with_history = request.query_params.get('with_history')
         author = request.query_params.get('author')
         count = request.query_params.get('count')
-        revisions = revision.split(',')
 
         if revision:
             try:
-                pushes = Push.objects.filter(revision__in=revisions, repository__name=project)
+                pushes = Push.objects.filter(
+                    revision__in=revision.split(','), repository__name=project
+                )
             except Push.DoesNotExist:
                 return Response(
                     "No push with revision: {0}".format(revision), status=HTTP_404_NOT_FOUND
@@ -228,21 +229,11 @@ class PushViewSet(viewsets.ViewSet):
                     "No pushes found for author: {0}".format(author), status=HTTP_404_NOT_FOUND
                 )
 
-        commit_history_details = None
+        commit_history = None
         data = []
 
         for push in list(pushes):
             jobs = get_test_failure_jobs(push)
-
-            if with_history:
-                repository = Repository.objects.get(name=project)
-
-                # Parent compare only supported for Hg at this time.
-                # Bug https://bugzilla.mozilla.org/show_bug.cgi?id=1612645
-                if repository.dvcs_type == 'hg':
-                    commit_history_details = get_commit_history(repository, push.revision, push)
-                    if commit_history_details['exactMatch']:
-                        commit_history_details.pop('parentPush')
 
             push_health_test_failures = get_test_failures(push, jobs)
             push_health_lint_failures = get_lint_failures(push)
@@ -251,15 +242,20 @@ class PushViewSet(viewsets.ViewSet):
             build_failure_count = len(push_health_build_failures)
             lint_failure_count = len(push_health_lint_failures)
 
+            if with_history:
+                serializer = PushSerializer(pushes, many=True)
+                commit_history = serializer.data
+
             data.append(
                 {
                     'testFailureCount': test_failure_count,
                     'buildFailureCount': build_failure_count,
                     'lintFailureCount': lint_failure_count,
                     'needInvestigation': test_failure_count,
-                    'commitHistory': commit_history_details,
+                    'commitHistory': commit_history,
                 }
             )
+
         return Response(data)
 
     @action(detail=False)
