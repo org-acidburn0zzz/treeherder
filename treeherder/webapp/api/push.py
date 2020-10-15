@@ -206,6 +206,7 @@ class PushViewSet(viewsets.ViewSet):
         with_history = request.query_params.get('with_history')
         author = request.query_params.get('author')
         count = request.query_params.get('count')
+        all_repos = request.query_params.get('all_repos')
 
         if revision:
             try:
@@ -219,11 +220,15 @@ class PushViewSet(viewsets.ViewSet):
         else:
             try:
                 pushes = (
-                    Push.objects.filter(author=author, repository__name=project)
+                    Push.objects.filter(author=author)
                     .select_related('repository')
                     .prefetch_related('commits')
                     .order_by('-time')[: int(count)]
                 )
+
+                if not all_repos:
+                    pushes.filter(repository__name=project)
+
             except Push.DoesNotExist:
                 return Response(
                     "No pushes found for author: {0}".format(author), status=HTTP_404_NOT_FOUND
