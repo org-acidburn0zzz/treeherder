@@ -38,7 +38,10 @@ class MyPushes extends React.Component {
 
     if (!failureStatus && data.results) {
       this.setState({ pushes: data.results });
-      const revisions = data.results.map((push) => push.revision);
+
+      const revisions = data.results.map((push) => `${push.revision},`);
+      console.log(revisions);
+      await this.fetchMetrics(revisions);
     }
   }
 
@@ -47,12 +50,9 @@ class MyPushes extends React.Component {
     this.setState({ repos });
   }
 
-  async fetchMetrics() {
-    // TODO change to author to this.props.user.email
+  async fetchMetrics(revisions) {
     const options = {
-      with_history: 'true',
-      author: 'reviewbot',
-      count: 3,
+      revision: revisions,
     };
 
     const { data, failureStatus } = await getData(
@@ -82,9 +82,9 @@ class MyPushes extends React.Component {
 
   render() {
     const { user } = this.props;
-    const { pushes, repos } = this.state;
+    const { pushes, repos, pushMetrics } = this.state;
     // const currentRepo = repos.find((repoObj) => repoObj.name === defaultRepo);
-
+    console.log(pushMetrics);
     return (
       <Container fluid className="mt-2 mb-5 max-width-default">
         {/* {!user.isLoggedIn && (
@@ -92,20 +92,24 @@ class MyPushes extends React.Component {
             Please log in to see your Try pushes
           </h2>
         )} */}
-        {repos.length > 0 &&
-          pushes.length > 0 &&
-          pushes.map((push) => (
-            <div key={push.revision}>
-              <CommitHistory
-                history={this.formatRevisionHistory(push)}
-                revision={push.revision}
-                currentRepo={repos.find(
-                  (repo) => repo.id === push.repository_id,
-                )}
-                showParent={false}
-              />
-            </div>
-          ))}
+        <div className="d-flex mb-5">
+          {/* {pushMetrics.length &&
+        <StatusProgress counts={pushMetrics} />} */}
+          {repos.length > 0 &&
+            pushes.length > 0 &&
+            pushes.map((push) => (
+              <div className="mt-4 ml-2" key={push.revision}>
+                <CommitHistory
+                  history={this.formatRevisionHistory(push)}
+                  revision={push.revision}
+                  currentRepo={repos.find(
+                    (repo) => repo.id === push.repository_id,
+                  )}
+                  showParent={false}
+                />
+              </div>
+            ))}
+        </div>
       </Container>
     );
   }
