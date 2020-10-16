@@ -208,7 +208,6 @@ class PushViewSet(viewsets.ViewSet):
         Return a calculated summary of the health of this push.
         """
         revision = request.query_params.get('revision')
-        with_history = request.query_params.get('with_history')
         author = request.query_params.get('author')
         count = request.query_params.get('count')
         all_repos = request.query_params.get('all_repos')
@@ -241,12 +240,7 @@ class PushViewSet(viewsets.ViewSet):
                     "No pushes found for author: {0}".format(author), status=HTTP_404_NOT_FOUND
                 )
 
-        commit_history = None
         data = []
-
-        if with_history:
-            serializer = PushSerializer(pushes, many=True)
-            commit_history = serializer.data
 
         for push in list(pushes):
             jobs = get_test_failure_jobs(push)
@@ -266,7 +260,7 @@ class PushViewSet(viewsets.ViewSet):
                     'needInvestigation': test_failure_count
                     + build_failure_count
                     + lint_failure_count,
-                    'commitHistory': commit_history,
+                    'status': push.get_status(),
                 }
             )
 
