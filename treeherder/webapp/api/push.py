@@ -223,11 +223,13 @@ class PushViewSet(viewsets.ViewSet):
                     Push.objects.filter(author=author)
                     .select_related('repository')
                     .prefetch_related('commits')
-                    .order_by('-time')[: int(count)]
+                    .order_by('-time')
                 )
 
                 if not all_repos:
                     pushes.filter(repository__name=project)
+
+                pushes = pushes[: int(count)]
 
             except Push.DoesNotExist:
                 return Response(
@@ -236,6 +238,10 @@ class PushViewSet(viewsets.ViewSet):
 
         commit_history = None
         data = []
+
+        if with_history:
+            serializer = PushSerializer(pushes, many=True)
+            commit_history = serializer.data
 
         for push in list(pushes):
             jobs = get_test_failure_jobs(push)
@@ -246,10 +252,6 @@ class PushViewSet(viewsets.ViewSet):
             test_failure_count = len(push_health_test_failures['needInvestigation'])
             build_failure_count = len(push_health_build_failures)
             lint_failure_count = len(push_health_lint_failures)
-
-            if with_history:
-                serializer = PushSerializer(pushes, many=True)
-                commit_history = serializer.data
 
             data.append(
                 {
