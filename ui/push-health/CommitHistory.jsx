@@ -47,6 +47,7 @@ class CommitHistory extends React.PureComponent {
       },
       revision,
       currentRepo,
+      showParent,
     } = this.props;
     const { clipboardVisible, isExpanded } = this.state;
     const parentRepoModel = new RepositoryModel(parentRepository);
@@ -123,7 +124,7 @@ class CommitHistory extends React.PureComponent {
           <div className="ml-3">
             Base commit:
             <span>
-              {!exactMatch && (
+              {!exactMatch && showParent && (
                 <div>
                   <Alert color="warning" className="m-3 font-italics">
                     Warning: Could not find an exact match parent Push in
@@ -147,7 +148,7 @@ class CommitHistory extends React.PureComponent {
                 >
                   {parentPushRevision || parentSha}
                 </a>
-                {exactMatch && (
+                {exactMatch && showParent && (
                   <PushHealthStatus
                     revision={parentPushRevision}
                     repoName={parentRepository.name}
@@ -202,6 +203,11 @@ CommitHistory.propTypes = {
   }).isRequired,
   revision: PropTypes.string.isRequired,
   currentRepo: PropTypes.shape({}).isRequired,
+  showParent: PropTypes.bool,
+};
+
+CommitHistory.defaultProps = {
+  showParent: true,
 };
 
 export default CommitHistory;

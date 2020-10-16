@@ -15,31 +15,38 @@ class MyPushes extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = { pushMetrics: [], currentRepo: null };
+    this.state = { pushMetrics: [], repos: [], pushes: [] };
   }
 
-  componentDidMount() {
+  async componentDidMount() {
+    await this.fetchRepos();
     // if (this.props.user.isLoggedIn) {
-    this.fetchRepo();
     this.fetchPushes();
     // }
   }
 
   componentDidUpdate(prevProps) {
     if (!prevProps.user.isLoggedIn && this.props.user.isLoggedIn) {
-      this.fetchRepo();
       this.fetchPushes();
     }
   }
 
-  async fetchRepo() {
-    const repos = await RepositoryModel.getList();
-    const currentRepo = repos.find((repoObj) => repoObj.name === defaultRepo);
+  async fetchPushes() {
+    const options = { repo: 'try', author: 'tziade@mozilla.com', count: 3 };
+    const { data, failureStatus } = await PushModel.getList(options);
 
-    this.setState({ currentRepo });
+    if (!failureStatus && data.results) {
+      this.setState({ pushes: data.results });
+      const revisions = data.results.map((push) => push.revision);
+    }
   }
 
-  async fetchPushes() {
+  async fetchRepos() {
+    const repos = await RepositoryModel.getList();
+    this.setState({ repos });
+  }
+
+  async fetchMetrics() {
     // TODO change to author to this.props.user.email
     const options = {
       with_history: 'true',
@@ -60,10 +67,23 @@ class MyPushes extends React.Component {
     // TODO notify with failure message
   }
 
+  formatRevisionHistory = (push) => ({
+    // parentRepository,
+    // jobCounts,
+    // exactMatch,
+    // parentPushRevision,
+    parentSha: push.revision,
+    id: push.id,
+    revisions: push.revisions,
+    revisionCount: push.revisions.length,
+    currentPush: { author: push.author, push_timestamp: push.push_timestamp },
+  });
+
   render() {
     const { user } = this.props;
-    const { pushMetrics, currentRepo } = this.state;
-    console.log(pushMetrics, currentRepo);
+    const { pushes, repos } = this.state;
+    // const currentRepo = repos.find((repoObj) => repoObj.name === defaultRepo);
+
     return (
       <Container fluid className="mt-2 mb-5 max-width-default">
         {/* {!user.isLoggedIn && (
@@ -71,14 +91,17 @@ class MyPushes extends React.Component {
             Please log in to see your Try pushes
           </h2>
         )} */}
-        {currentRepo &&
-          pushMetrics.length > 0 &&
-          pushMetrics.map((push) => (
-            <div key={push.commitHistory.currentPush.revision}>
+        {repos.length > 0 &&
+          pushes.length > 0 &&
+          pushes.map((push) => (
+            <div key={push.revision}>
               <CommitHistory
-                history={push.commitHistory}
-                revision={push.commitHistory.currentPush.revision}
-                currentRepo={currentRepo}
+                history={this.formatRevisionHistory(push)}
+                revision={push.revision}
+                currentRepo={repos.find(
+                  (repo) => repo.id === push.repository_id,
+                )}
+                showParent={false}
               />
             </div>
           ))}
