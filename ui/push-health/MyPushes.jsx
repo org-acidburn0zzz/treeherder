@@ -32,7 +32,8 @@ class MyPushes extends React.Component {
   }
 
   async fetchPushes() {
-    const options = { repo: 'try', author: 'tziade@mozilla.com', count: 3 };
+    // TODO change to author to this.props.user.email
+    const options = { repo: 'try', author: 'reviewbot', count: 3 };
     const { data, failureStatus } = await PushModel.getList(options);
 
     if (!failureStatus && data.results) {
@@ -50,7 +51,7 @@ class MyPushes extends React.Component {
     // TODO change to author to this.props.user.email
     const options = {
       with_history: 'true',
-      author: 'tziade@mozilla.com',
+      author: 'reviewbot',
       count: 3,
     };
 

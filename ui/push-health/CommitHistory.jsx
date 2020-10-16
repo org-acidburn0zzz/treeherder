@@ -121,48 +121,50 @@ class CommitHistory extends React.PureComponent {
               commentFont="h6"
             />
           )}
-          <div className="ml-3">
-            Base commit:
-            <span>
-              {!exactMatch && showParent && (
-                <div>
-                  <Alert color="warning" className="m-3 font-italics">
-                    Warning: Could not find an exact match parent Push in
-                    Treeherder.
-                  </Alert>
-                  {id && <div>Closest match: </div>}
-                </div>
-              )}
-              <span
-                className="mb-2"
-                onMouseEnter={() => this.showClipboard(true)}
-                onMouseLeave={() => this.showClipboard(false)}
-              >
-                <a
-                  href={parentLinkUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title="Open this push"
-                  data-testid="parent-commit-sha"
-                  className="mr-1 ml-1 font-weight-bold text-secondary"
-                >
-                  {parentPushRevision || parentSha}
-                </a>
-                {exactMatch && showParent && (
-                  <PushHealthStatus
-                    revision={parentPushRevision}
-                    repoName={parentRepository.name}
-                    jobCounts={jobCounts}
-                  />
+          {showParent && (
+            <div className="ml-3">
+              Base commit:
+              <span>
+                {!exactMatch && (
+                  <div>
+                    <Alert color="warning" className="m-3 font-italics">
+                      Warning: Could not find an exact match parent Push in
+                      Treeherder.
+                    </Alert>
+                    {id && <div>Closest match: </div>}
+                  </div>
                 )}
-                <Clipboard
-                  description="full hash"
-                  text={parentSha}
-                  visible={clipboardVisible}
-                />
+                <span
+                  className="mb-2"
+                  onMouseEnter={() => this.showClipboard(true)}
+                  onMouseLeave={() => this.showClipboard(false)}
+                >
+                  <a
+                    href={parentLinkUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Open this push"
+                    data-testid="parent-commit-sha"
+                    className="mr-1 ml-1 font-weight-bold text-secondary"
+                  >
+                    {parentPushRevision || parentSha}
+                  </a>
+                  {exactMatch && (
+                    <PushHealthStatus
+                      revision={parentPushRevision}
+                      repoName={parentRepository.name}
+                      jobCounts={jobCounts}
+                    />
+                  )}
+                  <Clipboard
+                    description="full hash"
+                    text={parentSha}
+                    visible={clipboardVisible}
+                  />
+                </span>
               </span>
-            </span>
-          </div>
+            </div>
+          )}
         </div>
         {revisions.length > 2 && (
           <span className="font-weight-bold">
