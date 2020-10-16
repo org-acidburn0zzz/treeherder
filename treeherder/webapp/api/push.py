@@ -52,14 +52,19 @@ class PushViewSet(viewsets.ViewSet):
                 del filter_params[param]
                 meta[param] = v
 
-        try:
-            repository = Repository.objects.get(name=project)
-        except Repository.DoesNotExist:
-            return Response(
-                {"detail": "No project with name {}".format(project)}, status=HTTP_404_NOT_FOUND
-            )
+        all_repos = request.query_params.get('all_repos')
 
-        pushes = Push.objects.filter(repository=repository).order_by('-time')
+        pushes = Push.objects.order_by('-time')
+
+        if not all_repos:
+            try:
+                repository = Repository.objects.get(name=project)
+            except Repository.DoesNotExist:
+                return Response(
+                    {"detail": "No project with name {}".format(project)}, status=HTTP_404_NOT_FOUND
+                )
+
+            pushes = pushes.filter(repository=repository)
 
         for (param, value) in meta.items():
             if param == 'fromchange':
@@ -167,7 +172,7 @@ class PushViewSet(viewsets.ViewSet):
         serializer = PushSerializer(pushes, many=True)
 
         meta['count'] = len(pushes)
-        meta['repository'] = project
+        meta['repository'] = 'all' if all_repos else project
         meta['filter_params'] = filter_params
 
         resp = {'meta': meta, 'results': serializer.data}
