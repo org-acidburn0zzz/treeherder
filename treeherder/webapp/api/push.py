@@ -258,7 +258,9 @@ class PushViewSet(viewsets.ViewSet):
                     'testFailureCount': test_failure_count,
                     'buildFailureCount': build_failure_count,
                     'lintFailureCount': lint_failure_count,
-                    'needInvestigation': test_failure_count,
+                    'needInvestigation': test_failure_count
+                    + build_failure_count
+                    + lint_failure_count,
                     'commitHistory': commit_history,
                 }
             )
