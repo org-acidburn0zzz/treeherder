@@ -341,6 +341,7 @@ mozci==0.5.2 \
     --hash=sha256:e176f500118ebe364719dcdfba25d117892cc1bdf83b645825305927d02225cd \
     --hash=sha256:5081cd9ff64c5324f8b2dbdd1c4bb7fefb0779c955f4e346abc3a050e0050efc \
     --hash=sha256:879cdb9fe9125906bffcc8aded0e902a64c8c48f56258bc5c6747e12264c2d41 \
+    --hash=sha256:5ac8b5c957d78be883bcd5881518702b16367aa6527ec687a250ff0ad1696be6 \
     # via -r requirements/common.in
 mozlog==6.1 \
     --hash=sha256:0d45abc8b9aec5e812ade6665128e50f9041f98397d11f9c753aa93a3f10e978 \
