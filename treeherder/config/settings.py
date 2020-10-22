@@ -7,6 +7,8 @@ from os.path import abspath, dirname, join
 import environ
 from furl import furl
 from kombu import Exchange, Queue
+from adr import config
+from urllib.parse import urlparse
 
 from treeherder.config.utils import connection_should_use_tls, get_tls_redis_url
 

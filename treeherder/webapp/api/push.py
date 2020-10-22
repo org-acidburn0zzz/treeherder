@@ -258,18 +258,6 @@ class PushViewSet(viewsets.ViewSet):
         except Push.DoesNotExist:
             return Response(f"No push with revision: {revision}", status=HTTP_404_NOT_FOUND)
 
-        # task_ids = Job.objects.filter(
-        #     push__revision=revision, repository__name=project
-        # ).select_related(
-        #     'taskcluster_metadata'
-        # ).values_list(
-        #     'taskcluster_metadata__task_id', flat=True
-        # )
-        # print(task_ids)
-        #
-        # return {id: {} for id in list(task_ids)}
-        # return Response(list(task_ids))
-
         mozciPush = MozciPush([revision], repository.name)
         likely_regression_labels = list(mozciPush.get_likely_regressions('label'))
         jobs = get_test_failure_jobs(push)
@@ -285,7 +273,6 @@ class PushViewSet(viewsets.ViewSet):
         # Parent compare only supported for Hg at this time.
         # Bug https://bugzilla.mozilla.org/show_bug.cgi?id=1612645
         if repository.dvcs_type == 'hg':
-            # TODO: Need to use the MozciPush we already have for this.
             commit_history_details = get_commit_history(mozciPush, push)
             if commit_history_details['exactMatch']:
                 parent_push = commit_history_details.pop('parentPush')
